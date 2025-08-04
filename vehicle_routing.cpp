@@ -116,31 +116,12 @@ string create_entity_string(Entity &entity)
 
 /* --- GENETIC ALGORITHM --- */
 
-constexpr int N_ENTITIES = 20;
+constexpr int N_ENTITIES = 1;
 constexpr int MR_CUSTOMER_SWITCH = 40;
 
 Entity population[N_ENTITIES];
 
 /* --- GENETIC ALGORITHM - INITIALISATION --- */
-
-void init_ride(Ride &ride, int *customer_ids, int customer_index, int customer_count)
-{
-    set_ride_customer_served(ride, customer_count);
-
-    // TODO : Don't loop
-    int capacity_left = global_vehicle_capacity;
-    for (int i = 0, c_i = customer_index; c_i < customer_index + customer_count; i++, c_i++)
-    {
-        // Assign customer locations in ride
-        Location *customer = &global_locations[customer_ids[c_i]];
-
-        set_ride_customer_location(ride, i, customer);
-        capacity_left -= get_location_demand(customer);
-    }
-
-    // cerr << "init_ride: capacity_left set to :" << capacity_left << endl;
-    set_ride_capacity_left(ride, capacity_left);
-}
 
 void init_entity(Entity &entity)
 {
@@ -150,47 +131,60 @@ void init_entity(Entity &entity)
 
     // fprintf(stderr, "init_entity: Customer count = %d\n", global_customer_count);
 
-    int customer_index = 0;
+    int customer_ids_index = 0;
     int ride_index = 0;
-    int ride_first_customer_index = customer_index;
     int ride_customer_count = 0;
     int ride_demand = 0;
-    while (customer_index < global_customer_count)
+
+    // Start the first ride
+    while (customer_ids_index < global_customer_count)
     {
-        // Add customers to this ride until capacity would be exceeded
-        int cust_id = customer_ids[customer_index];
-        int cust_demand = global_locations[cust_id].demand;
+        int       cust_id = customer_ids[customer_ids_index++];
+        Location *cust = &global_locations[cust_id];
+        int       cust_demand = get_location_demand(cust);
 
-        // TODO :
-        // if (ride_demand <= global_vehicle_capacity)
-        // - Assign customer locations in ride with a new init_ride()
-
-        ride_demand += cust_demand;
-        if (ride_demand > global_vehicle_capacity)
+        // Verify current ride demand and customer one don't exceed vehicle capacity
+        if (ride_demand + cust_demand > global_vehicle_capacity)
         {
-            // Exceed capacity, start a new ride
-            // fprintf(stderr, "init_ride %d at customer_index %d: customer_count=%d\n", ride_index,
-            // ride_first_customer_index, ride_customer_count);
-            init_ride(
-                get_entity_ride(entity, ride_index), customer_ids, ride_first_customer_index,
-                ride_customer_count
+            // Set current ride final demand before going next
+            fprintf(
+                stderr, "init_entity: Ride %d has %d demand left\n", ride_index,
+                global_vehicle_capacity - ride_demand
             );
+            set_ride_capacity_left(
+                get_entity_ride(entity, ride_index), global_vehicle_capacity - ride_demand
+            );
+
+            // And start a new ride
             ride_index++;
-            ride_first_customer_index = customer_index;
             ride_customer_count = 0;
             ride_demand = cust_demand;
         }
+        else
+        {
+            // Sum customer demand to the current ride demand
+            ride_demand += cust_demand;
+        }
 
-        customer_index++;
-        ride_customer_count++;
+        fprintf(
+            stderr, "init_entity: Adding customer %d to ride %d (demand = %d/%d)\n", cust_id,
+            ride_index, ride_demand, global_vehicle_capacity
+        );
+
+        // Add customer to the current ride
+        Ride &ride = get_entity_ride(entity, ride_index);
+        set_ride_customer_location(ride, ride_customer_count++, cust);
     }
-    // fprintf(stderr, "init_ride %d at customer_index %d: customer_count=%d\n", ride_index,
-    // ride_first_customer_index, ride_customer_count);
-    init_ride(
-        get_entity_ride(entity, ride_index), customer_ids, ride_first_customer_index,
-        ride_customer_count
+
+    fprintf(
+        stderr, "init_entity: Ride %d has %d demand left\n", ride_index,
+        global_vehicle_capacity - ride_demand
+    );
+    set_ride_capacity_left(
+        get_entity_ride(entity, ride_index), global_vehicle_capacity - ride_demand
     );
 
+    fprintf(stderr, "init_entity: Entity has %d rides\n", ride_index + 1);
     set_entity_ride_count(entity, ride_index + 1);
 }
 
@@ -384,11 +378,15 @@ void parse_stdin()
 {
     cin >> global_location_count;
     cin.ignore();
-    cerr << "parse_stdin: Location count: " << global_location_count << endl;
 
     cin >> global_vehicle_capacity;
     cin.ignore();
-    cerr << "parse_stdin: Vehicle capacity: " << global_vehicle_capacity << endl;
+
+    // cerr << global_location_count << " " << global_vehicle_capacity << endl;
+    fprintf(
+        stderr, "parse_stdin: Location count: %d | Vehicle capacity: %d\n", global_location_count,
+        global_vehicle_capacity
+    );
 
     for (int i = 0; i < global_location_count; i++)
     {
@@ -398,8 +396,7 @@ void parse_stdin()
         int y;      // The y coordinate of the location
         int demand; // The demand
         cin >> id >> x >> y >> demand;
-        // cerr << "parse_stdin: Location " << id << ": " << x << " " << y << " demand " << demand
-        //  << endl;
+        // cerr << id << " " << x << " " << y << " " << demand << endl;
 
         Location *location = &global_locations[i];
         set_location_id(location, id);
@@ -440,12 +437,9 @@ int main()
     init_population();
     int generation_count = 1;
 
+    int    best_first_fitness = compute_fitness(get_best_entity());
+    int    best_fitness = best_first_fitness;
     string best_string = "";
-    int    best_fitness = INT_MAX;
-
-    cerr << "One population has " << N_ENTITIES << " entities" << endl;
-    cerr << "Best entity fitness (over " << generation_count
-         << " gen): " << compute_fitness(get_best_entity()) << endl;
 
     auto end = chrono::high_resolution_clock::now();
     while (chrono::duration_cast<chrono::milliseconds>(end - start).count() < 9000)
@@ -460,8 +454,8 @@ int main()
         int     fitness = compute_fitness(best_entity);
         if (fitness < best_fitness)
         {
-            best_string = entity_string;
             best_fitness = fitness;
+            best_string = entity_string;
         }
 
         // cerr << "Best entity fitness (over " << generation_count << " pop): " << best_fitness <<
@@ -469,6 +463,9 @@ int main()
         end = chrono::high_resolution_clock::now();
     }
 
-    cerr << "Best entity fitness (over " << generation_count << " gen): " << best_fitness << endl;
+    fprintf(
+        stderr, "Best fitnesses after %d generations (of %d entities): %d -> %d\n",
+        generation_count, N_ENTITIES, best_first_fitness, best_fitness
+    );
     cout << best_string << endl;
 }
