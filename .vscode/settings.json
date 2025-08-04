@@ -11,6 +11,8 @@
         "chrono": "cpp",
         "algorithm": "cpp",
         "cstring": "cpp",
-        "random": "cpp"
+        "random": "cpp",
+        "iostream": "cpp",
+        "climits": "cpp"
     }
 }
