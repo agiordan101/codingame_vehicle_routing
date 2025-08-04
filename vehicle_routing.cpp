@@ -81,8 +81,7 @@ void set_ride_customer_location(Ride &ride, int ride_location_index, Location *c
 {
     ride.customer_location[ride_location_index] = customer_loc;
 }
-void set_ride_capacity_left(Ride &ride, int capacity_left) {
-    ride.capacity_left = capacity_left; }
+void set_ride_capacity_left(Ride &ride, int capacity_left) { ride.capacity_left = capacity_left; }
 
 /* --- ENTITY --- */
 
@@ -127,7 +126,7 @@ Entity population[N_ENTITIES];
 void init_ride(Ride &ride, int *customer_ids, int customer_index, int customer_count)
 {
     set_ride_customer_served(ride, customer_count);
-    
+
     // TODO : Don't loop
     int capacity_left = global_vehicle_capacity;
     for (int i = 0, c_i = customer_index; c_i < customer_index + customer_count; i++, c_i++)
@@ -332,10 +331,10 @@ void switch_customers(Entity &entity)
 {
     int rnd_ride_i1 = rand() % get_entity_ride_count(entity);
     int rnd_ride_i2 = rand() % get_entity_ride_count(entity);
-    
+
     Ride &ride1 = get_entity_ride(entity, rnd_ride_i1);
     Ride &ride2 = get_entity_ride(entity, rnd_ride_i2);
-    
+
     int rnd_customer_i1 = rand() % get_ride_customer_served(ride1);
     int rnd_customer_i2 = rand() % get_ride_customer_served(ride2);
 
@@ -346,14 +345,16 @@ void switch_customers(Entity &entity)
     if (rnd_ride_i1 != rnd_ride_i2)
     {
         // Verify rides can accept the other customer instead
-        int new_ride1_capacity = get_ride_capacity_left(ride1) + get_location_demand(customer1) - get_location_demand(customer2);
+        int new_ride1_capacity = get_ride_capacity_left(ride1) + get_location_demand(customer1) -
+                                 get_location_demand(customer2);
         if (new_ride1_capacity < 0)
-            return ;
+            return;
 
         // Verify rides can accept the other customer instead
-        int new_ride2_capacity = get_ride_capacity_left(ride2) + get_location_demand(customer2) - get_location_demand(customer1);
+        int new_ride2_capacity = get_ride_capacity_left(ride2) + get_location_demand(customer2) -
+                                 get_location_demand(customer1);
         if (new_ride2_capacity < 0)
-            return ;
+            return;
 
         set_ride_capacity_left(ride1, new_ride1_capacity);
         set_ride_capacity_left(ride2, new_ride2_capacity);
@@ -398,7 +399,7 @@ void parse_stdin()
         int demand; // The demand
         cin >> id >> x >> y >> demand;
         // cerr << "parse_stdin: Location " << id << ": " << x << " " << y << " demand " << demand
-            //  << endl;
+        //  << endl;
 
         Location *location = &global_locations[i];
         set_location_id(location, id);
@@ -440,10 +441,11 @@ int main()
     int generation_count = 1;
 
     string best_string = "";
-    int best_fitness = INT_MAX;
+    int    best_fitness = INT_MAX;
 
     cerr << "One population has " << N_ENTITIES << " entities" << endl;
-    cerr << "Best entity fitness (over " << generation_count << " gen): " << compute_fitness(get_best_entity()) << endl;
+    cerr << "Best entity fitness (over " << generation_count
+         << " gen): " << compute_fitness(get_best_entity()) << endl;
 
     auto end = chrono::high_resolution_clock::now();
     while (chrono::duration_cast<chrono::milliseconds>(end - start).count() < 9000)
@@ -454,15 +456,16 @@ int main()
         generation_count++;
 
         Entity &best_entity = get_best_entity();
-        string entity_string = create_entity_string(best_entity);
-        int fitness = compute_fitness(best_entity);
+        string  entity_string = create_entity_string(best_entity);
+        int     fitness = compute_fitness(best_entity);
         if (fitness < best_fitness)
         {
             best_string = entity_string;
             best_fitness = fitness;
         }
 
-        // cerr << "Best entity fitness (over " << generation_count << " pop): " << best_fitness << endl;
+        // cerr << "Best entity fitness (over " << generation_count << " pop): " << best_fitness <<
+        // endl;
         end = chrono::high_resolution_clock::now();
     }
 
