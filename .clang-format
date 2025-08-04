@@ -1,0 +1,11 @@
+BasedOnStyle: LLVM
+IndentWidth: 4
+ColumnLimit: 100
+AlignAfterOpenBracket: BlockIndent # Prevents the parameters from aligning with the opening parenthesis
+AlignConsecutiveDeclarations: true  # Align prototypes
+AlignConsecutiveMacros: true        # Align preprocessor macros
+AllowAllArgumentsOnNextLine: true
+AllowShortFunctionsOnASingleLine: All
+BinPackParameters: false # Ensures that each parameter is placed on a new line
+BreakBeforeBraces: Allman # Places the opening brace on a new line '{'
+IndentAccessModifiers: true
