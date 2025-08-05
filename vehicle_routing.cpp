@@ -119,8 +119,6 @@ string create_entity_string(Entity &entity)
 constexpr int N_ENTITIES = 1;
 constexpr int MR_CUSTOMER_SWITCH = 40;
 
-Entity population[N_ENTITIES];
-
 /* --- GENETIC ALGORITHM - INITIALISATION --- */
 
 void init_entity(Entity &entity)
@@ -151,10 +149,10 @@ void init_entity(Entity &entity)
             // Set current ride final demand before going next
             set_ride_capacity_left(ride, global_vehicle_capacity - ride_demand);
             set_ride_customer_served(ride, ride_customer_count);
-            fprintf(
-                stderr, "init_entity: Ride %d has %d customers (%d demand left)\n", ride_index,
-                ride_customer_count, global_vehicle_capacity - ride_demand
-            );
+            // fprintf(
+            //     stderr, "init_entity: Ride %d has %d customers (%d demand left)\n", ride_index,
+            //     ride_customer_count, global_vehicle_capacity - ride_demand
+            // );
             fprintf(
                 stderr, "init_entity: Ride %d has %d customers (%d demand left)\n", ride_index,
                 get_ride_customer_served(ride), get_ride_capacity_left(ride)
@@ -172,13 +170,22 @@ void init_entity(Entity &entity)
             ride_demand += cust_demand;
         }
 
-        fprintf(
-            stderr, "init_entity: Adding customer %d to ride %d (demand = %d/%d)\n", cust_id,
-            ride_index, ride_demand, global_vehicle_capacity
-        );
-
         // Add customer to the current ride
         set_ride_customer_location(ride, ride_customer_count++, cust);
+
+        fprintf(
+            stderr, "init_entity: Adding customer %d to ride %d (demand = %d/%d, address = %p)\n",
+            cust_id, ride_index, ride_demand, global_vehicle_capacity,
+            get_ride_customer_location(ride, ride_customer_count - 1)
+        );
+
+        ride = get_entity_ride(entity, ride_index);
+
+        fprintf(
+            stderr, "init_entity: Adding customer %d to ride %d (demand = %d/%d, address = %p)\n",
+            cust_id, ride_index, ride_demand, global_vehicle_capacity,
+            get_ride_customer_location(ride, ride_customer_count - 1)
+        );
     }
 
     Ride &ride = get_entity_ride(entity, ride_index);
@@ -187,20 +194,24 @@ void init_entity(Entity &entity)
 
     fprintf(
         stderr, "init_entity: Ride %d has %d customers (%d demand left)\n", ride_index,
-        ride_customer_count, global_vehicle_capacity - ride_demand
-    );
-    fprintf(
-        stderr, "init_entity: Ride %d has %d customers (%d demand left)\n", ride_index,
         get_ride_customer_served(ride), get_ride_capacity_left(ride)
     );
 
-    fprintf(stderr, "init_entity: Entity has %d rides\n", ride_index + 1);
     set_entity_ride_count(entity, ride_index + 1);
+    // fprintf(stderr, "init_entity: Entity has %d rides\n", ride_index + 1);
+    fprintf(stderr, "init_entity: Entity has %d rides\n", get_entity_ride_count(entity));
+
+    Ride *ride_ptr = &entity.rides[ride_index];
+    fprintf(
+        stderr, "Entity N - Ride %d: %d customers (%d capacity left) | Location address %p\n",
+        ride_index, ride_ptr->customer_served, ride_ptr->capacity_left,
+        ride_ptr->customer_location[ride_index]
+    );
 }
 
-void init_population()
+void init_population(Entity *population)
 {
-    memset(population, 0, sizeof(population));
+    memset(population, 0, sizeof(Entity) * N_ENTITIES);
     for (int i = 0; i < N_ENTITIES; i++)
         init_entity(population[i]);
 }
@@ -254,7 +265,7 @@ int compute_fitness(Entity &entity)
 
 /* --- GENETIC ALGORITHM - SELECTION --- */
 
-Entity &get_best_entity()
+Entity &get_best_entity(Entity *population)
 {
     int max_fitness = INT_MAX;
     int best_entity_index = 0;
@@ -272,7 +283,7 @@ Entity &get_best_entity()
     return population[best_entity_index];
 }
 
-void select_next_generation_entities()
+void select_next_generation_entities(Entity *population)
 {
     int fitnesses[N_ENTITIES];
     int max_fitness = 0;
@@ -363,7 +374,7 @@ void mutate_entity(Entity &entity)
         switch_customers(entity);
 }
 
-void mutate_population()
+void mutate_population(Entity *population)
 {
     for (int i = 0; i < N_ENTITIES; i++)
         mutate_entity(population[i]);
@@ -431,21 +442,33 @@ int main()
 
     auto start = chrono::high_resolution_clock::now();
 
-    init_population();
+    Entity population[N_ENTITIES];
+
+    init_population(population);
     int generation_count = 1;
 
     for (int i = 0; i < N_ENTITIES; i++)
     {
         Entity &entity = population[i];
+        Entity *entity_ptr = &population[i];
         fprintf(stderr, "Entity %d: %d rides\n", i, get_entity_ride_count(entity));
+        // fprintf(stderr, "Entity %d: '%s'\n", i, create_entity_string(entity).c_str());
 
         for (int r = 0; r < get_entity_ride_count(entity); r++)
         {
-            Ride &ride = get_entity_ride(entity, i);
+            Ride &ride = get_entity_ride(entity, r);
             fprintf(
-                stderr, "Entity %d - Ride %d: %d customers | First at %d %d\n", i, r,
-                get_ride_customer_served(ride), get_location_x(get_ride_customer_location(ride, 0)),
+                stderr, "Entity %d - Ride %d: %d customers (%d capacity left) | First at %d %d\n",
+                i, r, get_ride_customer_served(ride), get_ride_capacity_left(ride),
+                get_location_x(get_ride_customer_location(ride, 0)),
                 get_location_y(get_ride_customer_location(ride, 0))
+            );
+
+            Ride *ride_ptr = &entity_ptr->rides[r];
+            fprintf(
+                stderr, "Entity %d - Ride %d: %d customers (%d capacity left) | First at %d %d\n",
+                i, r, ride_ptr->customer_served, ride_ptr->capacity_left,
+                ride_ptr->customer_location[0]->x, ride_ptr->customer_location[0]->y
             );
 
             for (int c = 0; c < get_ride_customer_served(ride); c++)
@@ -459,13 +482,13 @@ int main()
         }
     }
 
-    Entity &best_entity = get_best_entity();
+    Entity &best_entity = get_best_entity(population);
     fprintf(
         stderr, "Generation %d: %s (fitness=%d)\n", generation_count,
         create_entity_string(best_entity).c_str(), compute_fitness(best_entity)
     );
 
-    int    best_first_fitness = compute_fitness(get_best_entity());
+    int    best_first_fitness = compute_fitness(get_best_entity(population));
     int    best_fitness = best_first_fitness;
     string best_string = "";
 
@@ -473,11 +496,11 @@ int main()
     while (chrono::duration_cast<chrono::milliseconds>(end - start).count() < 9000)
     {
         // init_population();
-        select_next_generation_entities();
-        mutate_population();
+        select_next_generation_entities(population);
+        mutate_population(population);
         generation_count++;
 
-        Entity &best_entity = get_best_entity();
+        Entity &best_entity = get_best_entity(population);
         string  entity_string = create_entity_string(best_entity);
         int     fitness = compute_fitness(best_entity);
         if (fitness < best_fitness)
