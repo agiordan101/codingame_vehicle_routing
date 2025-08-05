@@ -21,6 +21,11 @@ using namespace std;
 std::random_device rand_device;
 std::mt19937       rand_engine(rand_device());
 
+/* --- GENETIC ALGORITHM CONSTANTS --- */
+
+constexpr int N_ENTITIES = 10;
+constexpr int MR_CUSTOMER_SWITCH = 40;
+
 /* --- CUSTOMER --- */
 
 struct Location
@@ -130,17 +135,12 @@ void print_entity(Entity *entity)
         {
             Location *customer = get_ride_customer_location(ride, c);
             fprintf(
-                stderr, "Entity - Ride %d - Customer %d: Demands %d\n", r, c,
-                get_location_demand(customer)
+                stderr, "Entity - Ride %d - Customer %d: Demands %d\n", r,
+                get_location_id(customer), get_location_demand(customer)
             );
         }
     }
 }
-
-/* --- GENETIC ALGORITHM --- */
-
-constexpr int N_ENTITIES = 1;
-constexpr int MR_CUSTOMER_SWITCH = 40;
 
 /* --- GENETIC ALGORITHM - INITIALISATION --- */
 
@@ -216,7 +216,7 @@ void init_population(Entity *population)
     for (int i = 0; i < N_ENTITIES; i++)
     {
         init_entity(&population[i]);
-        print_entity(&population[i]);
+        // print_entity(&population[i]);
     }
 }
 
@@ -424,11 +424,6 @@ void parse_stdin()
 
     // Depot is the first location in the list
     global_customer_count = global_location_count - 1;
-}
-
-int main()
-{
-    parse_stdin();
 
     // for (int i = 0; i < global_customer_count; i++)
     //     cerr << "Demand in location id " << i << ": " << global_customer_ids[i]
@@ -443,44 +438,48 @@ int main()
     //     cerr << "Entity " << i << " has " << get_entity_ride_count(population[i])
     //          << " rides (fitness=" << compute_fitness(population[i])
     //          << "): " << create_entity_string(population[i]) << endl;
+}
 
-    // auto start = chrono::high_resolution_clock::now();
+int main()
+{
+    parse_stdin();
+
+    auto start = chrono::high_resolution_clock::now();
 
     Entity population[N_ENTITIES];
     init_population(population);
 
-    int    best_first_fitness = compute_fitness(get_best_entity(population));
-    int    best_fitness = best_first_fitness;
-    string best_string = "";
+    Entity *best_entity = get_best_entity(population);
+    int     best_first_fitness = compute_fitness(best_entity);
+    int     best_fitness = best_first_fitness;
 
-    int generation_count = 1;
-    // auto end = chrono::high_resolution_clock::now();
-    // while (chrono::duration_cast<chrono::milliseconds>(end - start).count() < 9000)
-    // {
-    //     // init_population();
-    //     select_next_generation_entities(population);
-    //     mutate_population(population);
-    //     generation_count++;
+    int  generation_count = 1;
+    auto end = chrono::high_resolution_clock::now();
+    while (chrono::duration_cast<chrono::milliseconds>(end - start).count() < 9500)
+    {
+        // init_population();
+        select_next_generation_entities(population);
+        mutate_population(population);
+        generation_count++;
 
-    //     Entity *best_entity = get_best_entity(population);
-    //     string  entity_string = create_entity_string(best_entity);
-    //     int     fitness = compute_fitness(best_entity);
-    //     if (fitness < best_fitness)
-    //     {
-    //         best_fitness = fitness;
-    //         best_string = entity_string;
-    //     }
+        Entity *entity = get_best_entity(population);
+        int     fitness = compute_fitness(entity);
+        if (fitness < best_fitness)
+        {
+            best_fitness = fitness;
+            best_entity = entity;
+        }
 
-    //     fprintf(
-    //         stderr, "Best fitnesses after %d generations (of %d entities): %d -> %d\n",
-    //         generation_count, N_ENTITIES, best_first_fitness, best_fitness
-    //     );
-    //     end = chrono::high_resolution_clock::now();
-    // }
+        // fprintf(
+        //     stderr, "Best fitnesses after %d generations (of %d entities): %d -> %d\n",
+        //     generation_count, N_ENTITIES, best_first_fitness, best_fitness
+        // );
+        end = chrono::high_resolution_clock::now();
+    }
 
     fprintf(
         stderr, "\nBest fitnesses after %d generations (of %d entities): %d -> %d\n",
         generation_count, N_ENTITIES, best_first_fitness, best_fitness
     );
-    cout << best_string << endl;
+    cout << create_entity_string(best_entity) << endl;
 }
