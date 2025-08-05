@@ -66,22 +66,22 @@ struct Ride
         int       capacity_left; // Start with constant vehicles capacity
 };
 
-int       get_ride_customer_served(Ride &ride) { return ride.customer_served; }
-Location *get_ride_customer_location(Ride &ride, int index)
+int       get_ride_customer_served(Ride *ride) { return ride->customer_served; }
+Location *get_ride_customer_location(Ride *ride, int index)
 {
-    return ride.customer_location[index];
+    return ride->customer_location[index];
 }
-int get_ride_capacity_left(Ride &ride) { return ride.capacity_left; }
+int get_ride_capacity_left(Ride *ride) { return ride->capacity_left; }
 
-void set_ride_customer_served(Ride &ride, int customer_served)
+void set_ride_customer_served(Ride *ride, int customer_served)
 {
-    ride.customer_served = customer_served;
+    ride->customer_served = customer_served;
 }
-void set_ride_customer_location(Ride &ride, int ride_location_index, Location *customer_loc)
+void set_ride_customer_location(Ride *ride, int ride_location_index, Location *customer_loc)
 {
-    ride.customer_location[ride_location_index] = customer_loc;
+    ride->customer_location[ride_location_index] = customer_loc;
 }
-void set_ride_capacity_left(Ride &ride, int capacity_left) { ride.capacity_left = capacity_left; }
+void set_ride_capacity_left(Ride *ride, int capacity_left) { ride->capacity_left = capacity_left; }
 
 /* --- ENTITY --- */
 
@@ -93,7 +93,7 @@ struct Entity
 };
 
 int   get_entity_ride_count(Entity &entity) { return entity.ride_count; }
-Ride &get_entity_ride(Entity &entity, int index) { return entity.rides[index]; }
+Ride *get_entity_ride(Entity &entity, int index) { return &entity.rides[index]; }
 
 void set_entity_ride_count(Entity &entity, int ride_count) { entity.ride_count = ride_count; }
 
@@ -103,7 +103,7 @@ string create_entity_string(Entity &entity)
 
     for (int i = 0; i < get_entity_ride_count(entity); i++)
     {
-        Ride &ride = get_entity_ride(entity, i);
+        Ride *ride = get_entity_ride(entity, i);
         for (int j = 0; j < get_ride_customer_served(ride); j++)
         {
             str += " " + to_string(get_location_id(get_ride_customer_location(ride, j)));
@@ -141,7 +141,7 @@ void init_entity(Entity &entity)
         Location *cust = &global_locations[cust_id];
         int       cust_demand = get_location_demand(cust);
 
-        Ride &ride = get_entity_ride(entity, ride_index);
+        Ride *ride = get_entity_ride(entity, ride_index);
 
         // Verify current ride demand and customer one don't exceed vehicle capacity
         if (ride_demand + cust_demand > global_vehicle_capacity)
@@ -188,7 +188,7 @@ void init_entity(Entity &entity)
         );
     }
 
-    Ride &ride = get_entity_ride(entity, ride_index);
+    Ride *ride = get_entity_ride(entity, ride_index);
     set_ride_capacity_left(ride, global_vehicle_capacity - ride_demand);
     set_ride_customer_served(ride, ride_customer_count);
 
@@ -233,7 +233,7 @@ int euclidienne_distance(Location *loc1, Location *loc2)
     );
 }
 
-int compute_ride_fitness(Ride &ride)
+int compute_ride_fitness(Ride *ride)
 {
     int fitness = 0;
 
@@ -334,8 +334,8 @@ void switch_customers(Entity &entity)
     int rnd_ride_i1 = rand() % get_entity_ride_count(entity);
     int rnd_ride_i2 = rand() % get_entity_ride_count(entity);
 
-    Ride &ride1 = get_entity_ride(entity, rnd_ride_i1);
-    Ride &ride2 = get_entity_ride(entity, rnd_ride_i2);
+    Ride *ride1 = get_entity_ride(entity, rnd_ride_i1);
+    Ride *ride2 = get_entity_ride(entity, rnd_ride_i2);
 
     int rnd_customer_i1 = rand() % get_ride_customer_served(ride1);
     int rnd_customer_i2 = rand() % get_ride_customer_served(ride2);
@@ -456,7 +456,7 @@ int main()
 
         for (int r = 0; r < get_entity_ride_count(entity); r++)
         {
-            Ride &ride = get_entity_ride(entity, r);
+            Ride *ride = get_entity_ride(entity, r);
             fprintf(
                 stderr, "Entity %d - Ride %d: %d customers (%d capacity left) | First at %d %d\n",
                 i, r, get_ride_customer_served(ride), get_ride_capacity_left(ride),
