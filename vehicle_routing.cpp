@@ -492,7 +492,7 @@ int main()
 
     int  generation_count = 1;
     auto end = chrono::high_resolution_clock::now();
-    while (chrono::duration_cast<chrono::milliseconds>(end - start).count() < 1000)
+    while (chrono::duration_cast<chrono::milliseconds>(end - start).count() < 9500)
     {
         // init_population();
         select_next_generation_entities(population);
