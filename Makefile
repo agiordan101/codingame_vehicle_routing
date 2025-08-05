@@ -6,14 +6,36 @@ CXXTARGET = -mmovbe -maes -mpclmul -mavx -mavx2 -mf16c -mfma -msse3 -mssse3 -mss
 
 CPP_FILE = vehicle_routing
 TEST_FILE = "testset/1 Example"
+OUTPUT_FILE = "testoutput.txt"
+
+SHELL := /bin/bash
+
+# Test files
+TEST_DIR := testset
+TEST_FILES := $(wildcard testset/*)
+
+# Results file
+RESULTS_FILE := results.txt
 
 all: $(CPP_FILE)
 
+# Build the target
 $(CPP_FILE): $(CPP_FILE).cpp
 	$(CC) $(CXXFLAGS) $(CXXOPTIMIZE) $(CXXOPTION) $(CXXTARGET) $< -o $@
 
+# Build and run the target
 run: $(CPP_FILE)
 	./$(CPP_FILE) < $(TEST_FILE)
+
+evaluate: $(CPP_FILE)
+	@echo "Running tests ..."
+	@rm -f $(OUTPUT_FILE)
+	@find $(TEST_DIR) -type f | while IFS= read -r test_file; do \
+		echo "Processing "$$test_file""; \
+		result=$$(./$(CPP_FILE) < "$$test_file"); \
+		echo "$$result" >> $(OUTPUT_FILE); \
+	done
+	@echo "All results have been written to $(OUTPUT_FILE)."
 
 clean:
 	rm -f $(CPP_FILE)

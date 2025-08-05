@@ -1,3 +1,9 @@
+/*
+    Genetic algorithm.
+    - Init population
+    - Select parents weighted by their fitness
+    - Mutate : Switch two random customers
+*/
 
 #undef _GLIBCXX_DEBUG
 #pragma GCC optimize("Ofast,unroll-loops,omit-frame-pointer,inline")
@@ -25,6 +31,7 @@ std::mt19937       rand_engine(rand_device());
 
 constexpr int N_ENTITIES = 10;
 constexpr int MR_CUSTOMER_SWITCH = 40;
+constexpr int MR_CUSTOMER_STEAL = 20;
 
 /* --- CUSTOMER --- */
 
@@ -87,6 +94,17 @@ void set_ride_customer_location(Ride *ride, int ride_location_index, Location *c
     ride->customer_location[ride_location_index] = customer_loc;
 }
 void set_ride_capacity_left(Ride *ride, int capacity_left) { ride->capacity_left = capacity_left; }
+
+bool can_customer_be_added_to_ride(Ride *ride, Location *customer_loc)
+{
+    return get_ride_capacity_left(ride) >= get_location_demand(customer_loc);
+}
+void add_customer_to_ride(Ride *ride, Location *customer_loc)
+{
+    set_ride_customer_location(ride, get_ride_customer_served(ride), customer_loc);
+    set_ride_customer_served(ride, get_ride_customer_served(ride) + 1);
+    set_ride_capacity_left(ride, get_ride_capacity_left(ride) - get_location_demand(customer_loc));
+}
 
 /* --- ENTITY --- */
 
@@ -370,12 +388,31 @@ void switch_customers(Entity *entity)
     set_ride_customer_location(ride2, rnd_customer_i2, customer1);
 }
 
+void steal_customers(Entity *entity)
+{
+    // TODO: Test to insert the customer in a random position instead of the end
+    int rnd_ride_i_dst = rand() % get_entity_ride_count(entity);
+    int rnd_ride_i_src = rand() % get_entity_ride_count(entity);
+
+    Ride *ride_dst = get_entity_ride(entity, rnd_ride_i_dst);
+    Ride *ride_src = get_entity_ride(entity, rnd_ride_i_src);
+
+    int       rnd_customer_i_src = rand() % get_ride_customer_served(ride_src);
+    Location *customer_src = get_ride_customer_location(ride_src, rnd_customer_i_src);
+
+    if (can_customer_be_added_to_ride(ride_dst, customer_src))
+        add_customer_to_ride(ride_dst, customer_src);
+}
+
 void mutate_entity(Entity *entity)
 {
     int rnd_number = rand() % 100;
 
     if (rnd_number < MR_CUSTOMER_SWITCH)
         switch_customers(entity);
+
+    // if (rnd_number < MR_CUSTOMER_STEAL)
+    //     steal_customers(entity);
 }
 
 void mutate_population(Entity *population)
@@ -455,7 +492,7 @@ int main()
 
     int  generation_count = 1;
     auto end = chrono::high_resolution_clock::now();
-    while (chrono::duration_cast<chrono::milliseconds>(end - start).count() < 9500)
+    while (chrono::duration_cast<chrono::milliseconds>(end - start).count() < 1000)
     {
         // init_population();
         select_next_generation_entities(population);
@@ -481,5 +518,7 @@ int main()
         stderr, "\nBest fitnesses after %d generations (of %d entities): %d -> %d\n",
         generation_count, N_ENTITIES, best_first_fitness, best_fitness
     );
-    cout << create_entity_string(best_entity) << endl;
+
+    cout << best_fitness;
+    // cout << create_entity_string(best_entity) << endl;
 }
