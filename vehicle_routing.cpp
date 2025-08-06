@@ -1,8 +1,11 @@
 /*
+    V1.1
+
     Genetic algorithm.
     - Init population
     - Select parents weighted by their fitness
     - Mutate : Switch two random customers
+    - Mutate : Steal a customer from a ride to insert it in another ride (Can remove a ride)
 */
 
 #undef _GLIBCXX_DEBUG
@@ -95,17 +98,6 @@ void set_ride_customer_location(Ride *ride, int ride_location_index, Location *c
 }
 void set_ride_capacity_left(Ride *ride, int capacity_left) { ride->capacity_left = capacity_left; }
 
-bool can_customer_be_added_to_ride(Ride *ride, Location *customer_loc)
-{
-    return get_ride_capacity_left(ride) >= get_location_demand(customer_loc);
-}
-void add_customer_to_ride(Ride *ride, Location *customer_loc)
-{
-    set_ride_customer_location(ride, get_ride_customer_served(ride), customer_loc);
-    set_ride_customer_served(ride, get_ride_customer_served(ride) + 1);
-    set_ride_capacity_left(ride, get_ride_capacity_left(ride) - get_location_demand(customer_loc));
-}
-
 /* --- ENTITY --- */
 
 // TODO: Don't use MAX_CUSTOMERS
@@ -119,6 +111,73 @@ int   get_entity_ride_count(Entity *entity) { return entity->ride_count; }
 Ride *get_entity_ride(Entity *entity, int index) { return &entity->rides[index]; }
 
 void set_entity_ride_count(Entity *entity, int ride_count) { entity->ride_count = ride_count; }
+
+/* --- STRUCTURE MANIPULATION - Entity --- */
+
+void remove_ride_from_entity(Entity *entity, int ride_index)
+{
+    // fprintf(
+    //     stderr, "Removing ride at index %d/%d\n", ride_index, get_entity_ride_count(entity) - 1
+    // );
+
+    // Shift all rides after the removed one of one position
+    for (int i = ride_index; i < get_entity_ride_count(entity) - 1; i++)
+    {
+        memcpy(get_entity_ride(entity, i), get_entity_ride(entity, i + 1), sizeof(Ride));
+    }
+
+    set_entity_ride_count(entity, get_entity_ride_count(entity) - 1);
+}
+
+/* --- STRUCTURE MANIPULATION - Ride --- */
+
+void add_customer_to_ride(Ride *ride, int customer_index, Location *customer_loc)
+{
+    // fprintf(
+    //     stderr, "Adding customer %d to ride at index %d/%d\n", get_location_id(customer_loc),
+    //     customer_index, get_ride_customer_served(ride) - 1
+    // );
+
+    // Shift all customers after the added one of one position
+    for (int i = get_ride_customer_served(ride); i > customer_index; i--)
+    {
+        set_ride_customer_location(ride, i, get_ride_customer_location(ride, i - 1));
+    }
+
+    set_ride_customer_location(ride, customer_index, customer_loc);
+    set_ride_customer_served(ride, get_ride_customer_served(ride) + 1);
+    set_ride_capacity_left(ride, get_ride_capacity_left(ride) - get_location_demand(customer_loc));
+}
+
+void remove_customer_from_ride(Ride *ride, int customer_index)
+{
+    // fprintf(
+    //     stderr, "Removing customer %d from ride at index %d/%d\n",
+    //     get_location_id(get_ride_customer_location(ride, customer_index)), customer_index,
+    //     get_ride_customer_served(ride) - 1
+    // );
+    int new_customer_count = get_ride_customer_served(ride) - 1;
+
+    // Save the customer location to remove before it gets overwritten
+    Location *customer_loc = get_ride_customer_location(ride, customer_index);
+
+    // Shift all customers after the removed one of one position
+    for (int i = customer_index; i < new_customer_count; i++)
+    {
+        set_ride_customer_location(ride, i, get_ride_customer_location(ride, i + 1));
+    }
+
+    set_ride_customer_served(ride, new_customer_count);
+    set_ride_capacity_left(ride, get_ride_capacity_left(ride) + get_location_demand(customer_loc));
+    // set_ride_customer_location(ride, customer_index, NULL);
+}
+
+/* --- STRUCTURE RELATED --- */
+
+bool can_customer_be_added_to_ride(Ride *ride, Location *customer_loc)
+{
+    return get_ride_capacity_left(ride) >= get_location_demand(customer_loc);
+}
 
 string create_entity_string(Entity *entity)
 {
@@ -388,20 +447,57 @@ void switch_customers(Entity *entity)
     set_ride_customer_location(ride2, rnd_customer_i2, customer1);
 }
 
-void steal_customers(Entity *entity)
+void steal_customer(Entity *entity)
 {
-    // TODO: Test to insert the customer in a random position instead of the end
-    int rnd_ride_i_dst = rand() % get_entity_ride_count(entity);
-    int rnd_ride_i_src = rand() % get_entity_ride_count(entity);
-
+    // Choose 2 random rides
+    int   rnd_ride_i_dst = rand() % get_entity_ride_count(entity);
+    int   rnd_ride_i_src = rand() % get_entity_ride_count(entity);
     Ride *ride_dst = get_entity_ride(entity, rnd_ride_i_dst);
     Ride *ride_src = get_entity_ride(entity, rnd_ride_i_src);
 
-    int       rnd_customer_i_src = rand() % get_ride_customer_served(ride_src);
-    Location *customer_src = get_ride_customer_location(ride_src, rnd_customer_i_src);
+    // Sanity check
+    // bool ride_removed = false;
+    // int customer_sum_before = get_ride_customer_served(ride_src) +
+    // get_ride_customer_served(ride_dst);
 
-    if (can_customer_be_added_to_ride(ride_dst, customer_src))
-        add_customer_to_ride(ride_dst, customer_src);
+    // Choose a random customer in the source ride
+    int       rnd_customer_i_src = rand() % get_ride_customer_served(ride_src);
+    Location *stolen_customer = get_ride_customer_location(ride_src, rnd_customer_i_src);
+
+    // Verify it can be added to the destination ride
+    if (rnd_ride_i_dst == rnd_ride_i_src ||
+        can_customer_be_added_to_ride(ride_dst, stolen_customer))
+    {
+        // Remove it from the ride first (The order is important in case src and dst rides are the
+        // same)
+        if (get_ride_customer_served(ride_src) - 1 == 0)
+        {
+            // TODO: Refacto ifs ?
+            // We cannot remove a ride if it's the one selected as destination
+            if (rnd_ride_i_dst == rnd_ride_i_src)
+                return;
+            else
+            {
+                // ride_removed = true;
+                remove_ride_from_entity(entity, rnd_ride_i_src);
+            }
+        }
+        else
+            remove_customer_from_ride(ride_src, rnd_customer_i_src);
+
+        // Then choose a random position to insert it in the destination ride
+        int rnd_customer_i_dst = rand() % get_ride_customer_served(ride_dst);
+        add_customer_to_ride(ride_dst, rnd_customer_i_dst, stolen_customer);
+    }
+
+    // int customer_sum_after = get_ride_customer_served(ride_src) +
+    // get_ride_customer_served(ride_dst); if (customer_sum_after != customer_sum_before &&
+    // ride_removed == false)
+    // {
+    //     fprintf(stderr, "customer_sum_before: %d\n", customer_sum_before);
+    //     fprintf(stderr, "customer_sum_after: %d\n", customer_sum_after);
+    //     // exit(1);
+    // }
 }
 
 void mutate_entity(Entity *entity)
@@ -411,8 +507,8 @@ void mutate_entity(Entity *entity)
     if (rnd_number < MR_CUSTOMER_SWITCH)
         switch_customers(entity);
 
-    // if (rnd_number < MR_CUSTOMER_STEAL)
-    //     steal_customers(entity);
+    if (rnd_number < MR_CUSTOMER_STEAL)
+        steal_customer(entity);
 }
 
 void mutate_population(Entity *population)
@@ -432,10 +528,10 @@ void parse_stdin()
     cin.ignore();
 
     // cerr << global_location_count << " " << global_vehicle_capacity << endl;
-    fprintf(
-        stderr, "parse_stdin: Location count: %d | Vehicle capacity: %d\n", global_location_count,
-        global_vehicle_capacity
-    );
+    // fprintf(
+    //     stderr, "parse_stdin: Location count: %d | Vehicle capacity: %d\n",
+    //     global_location_count, global_vehicle_capacity
+    // );
 
     for (int i = 0; i < global_location_count; i++)
     {
@@ -514,11 +610,11 @@ int main()
         end = chrono::high_resolution_clock::now();
     }
 
-    fprintf(
-        stderr, "\nBest fitnesses after %d generations (of %d entities): %d -> %d\n",
-        generation_count, N_ENTITIES, best_first_fitness, best_fitness
-    );
+    // fprintf(
+    //     stderr, "\nBest fitnesses after %d generations (of %d entities): %d -> %d\n",
+    //     generation_count, N_ENTITIES, best_first_fitness, best_fitness
+    // );
 
-    cout << best_fitness;
+    cout << "ent=" << N_ENTITIES << " | gen=" << generation_count << " | fitness=" << best_fitness;
     // cout << create_entity_string(best_entity) << endl;
 }

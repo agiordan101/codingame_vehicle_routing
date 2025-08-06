@@ -1,13 +1,13 @@
-5234
-50382
-20366
-9418
-15180
-1565
-3081
-5469
-5571
-2015
-80
-2143
-9103
+ent=10 | gen=29122 | fitness=5234
+ent=10 | gen=27479 | fitness=45451
+ent=10 | gen=28209 | fitness=20964
+ent=10 | gen=27547 | fitness=8778
+ent=10 | gen=27175 | fitness=13213
+ent=10 | gen=27660 | fitness=1556
+ent=10 | gen=26504 | fitness=2456
+ent=10 | gen=27877 | fitness=5152
+ent=10 | gen=27994 | fitness=4346
+ent=10 | gen=27150 | fitness=2129
+ent=10 | gen=26549 | fitness=68
+ent=10 | gen=27111 | fitness=1737
+ent=10 | gen=28564 | fitness=8379

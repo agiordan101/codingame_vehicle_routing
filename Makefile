@@ -5,7 +5,7 @@ CXXOPTION = -O3 -march=native -mtune=native -mno-vzeroupper
 CXXTARGET = -mmovbe -maes -mpclmul -mavx -mavx2 -mf16c -mfma -msse3 -mssse3 -msse4.1 -msse4.2 -mrdrnd -mpopcnt -mbmi -mbmi2 -mlzcnt
 
 CPP_FILE = vehicle_routing
-TEST_FILE = "testset/1 Example"
+TEST_FILE = "testset/3 Cocorico"
 OUTPUT_FILE = "testoutput.txt"
 
 SHELL := /bin/bash
@@ -26,6 +26,9 @@ $(CPP_FILE): $(CPP_FILE).cpp
 # Build and run the target
 run: $(CPP_FILE)
 	./$(CPP_FILE) < $(TEST_FILE)
+# 	@find $(TEST_DIR) -type f | while IFS= read -r test_file; do \
+# 		./$(CPP_FILE) < "$$test_file" \
+# 	done
 
 evaluate: $(CPP_FILE)
 	@echo "Running tests ..."
