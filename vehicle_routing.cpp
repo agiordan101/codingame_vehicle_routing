@@ -2,11 +2,21 @@
     V1.1
 
     Genetic algorithm.
-    - Init population
+    - Generate a random population
     - Select parents weighted by their fitness
     - Mutate : Switch two random customers
-    - Mutate : Steal a customer from a ride to insert it in another ride (Can remove a ride)
+    - Mutate : Move a customer from a ride to insert it in another ride (Can remove a ride)
 */
+
+/* --- GENETIC ALGORITHM CONSTANTS --- */
+
+constexpr int N_ENTITIES = 10;
+
+constexpr int ASSUMING_N_CUSTOMER_PER_RIDE = 40;
+constexpr int ASSUMING_N_RIDE_PER_ENTITY = 40;
+
+constexpr int MR_CUSTOMER_SWITCH = 20;
+constexpr int MR_CUSTOMER_STEAL = 10;
 
 #undef _GLIBCXX_DEBUG
 #pragma GCC optimize("Ofast,unroll-loops,omit-frame-pointer,inline")
@@ -29,12 +39,6 @@ using namespace std;
 // Setup random engine
 std::random_device rand_device;
 std::mt19937       rand_engine(rand_device());
-
-/* --- GENETIC ALGORITHM CONSTANTS --- */
-
-constexpr int N_ENTITIES = 10;
-constexpr int MR_CUSTOMER_SWITCH = 40;
-constexpr int MR_CUSTOMER_STEAL = 20;
 
 /* --- CUSTOMER --- */
 
@@ -73,11 +77,10 @@ void print_location(Location *location)
 
 int global_vehicle_capacity;
 
-// TODO: Don't use MAX_CUSTOMERS
 struct Ride
 {
         int       customer_served;
-        Location *customer_location[MAX_CUSTOMERS];
+        Location *customer_location[ASSUMING_N_CUSTOMER_PER_RIDE];
         int       capacity_left; // Start with constant vehicles capacity
 };
 
@@ -100,11 +103,10 @@ void set_ride_capacity_left(Ride *ride, int capacity_left) { ride->capacity_left
 
 /* --- ENTITY --- */
 
-// TODO: Don't use MAX_CUSTOMERS
 struct Entity
 {
         int  ride_count;
-        Ride rides[MAX_CUSTOMERS];
+        Ride rides[ASSUMING_N_RIDE_PER_ENTITY];
 };
 
 int   get_entity_ride_count(Entity *entity) { return entity->ride_count; }
@@ -586,11 +588,13 @@ int main()
     int     best_first_fitness = compute_fitness(best_entity);
     int     best_fitness = best_first_fitness;
 
+    // fprintf(stderr, "Mem size global_locations: %ld\n", sizeof(global_locations));
+    // fprintf(stderr, "Mem size population: %ld\n", sizeof(population));
+
     int  generation_count = 1;
     auto end = chrono::high_resolution_clock::now();
-    while (chrono::duration_cast<chrono::milliseconds>(end - start).count() < 9500)
+    while (chrono::duration_cast<chrono::milliseconds>(end - start).count() < 9000)
     {
-        // init_population();
         select_next_generation_entities(population);
         mutate_population(population);
         generation_count++;
@@ -603,11 +607,11 @@ int main()
             best_entity = entity;
         }
 
-        // fprintf(
-        //     stderr, "Best fitnesses after %d generations (of %d entities): %d -> %d\n",
-        //     generation_count, N_ENTITIES, best_first_fitness, best_fitness
-        // );
         end = chrono::high_resolution_clock::now();
+        // fprintf(
+        //     stderr, "Best fitness after %ldms and %d generations (of %d entities): %d -> %d\n",
+        //     chrono::duration_cast<chrono::milliseconds>(end - start).count(), generation_count, N_ENTITIES, best_first_fitness, best_fitness
+        // );
     }
 
     // fprintf(

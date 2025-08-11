@@ -1,1 +1,33 @@
 # codingame_vehicle_routing
+
+# Versions
+
+## 1.1 - 126 110
+
+- New mutation : Move a customer from a ride to insert it in another ride (Can remove a ride)
+
+## 1.0 - 154 957
+
+Start a genetic algorithm.
+- Generate a random population
+- Select parents weighted by their fitness
+- Mutate : Switch two random customers
+- Keep best entity
+
+## 0.3 - Best score : 253 442
+
+- Iterate on :
+    - Generate a random population
+    - Keep best entity based on their fitness
+
+## 0.2 - Best score: 321 374
+
+Customers go in rides in order, or start a new ride.
+
+## 0.1 - Best score: 550 762
+
+One ride per customer
+
+# Next steps
+
+
