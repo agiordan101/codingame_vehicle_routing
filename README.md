@@ -2,7 +2,7 @@
 
 # Versions
 
-## 1.4
+## 1.4 - 141 484
 
 - New mutation : Create a ride with a random customer from another ride
 - Fix mutation bug in move_customer() where a customer deappeared

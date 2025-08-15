@@ -561,72 +561,31 @@ void move_customer(Entity *entity)
         fprintf(
             stderr,
             "move_customer(): count_customer_locations() %d != "
-            "global_customer_count %d | get_ride_customer_served(ride_dst) %d -> %d\n",
-            count_customer_locations(entity), global_customer_count, customer_count_before_add,
-            get_ride_customer_served(ride_dst)
+            "global_customer_count %d\n",
+            count_customer_locations(entity), global_customer_count
         );
-        fprintf(
-            stderr, "Move customer %d from ride %d to ride %d\n", rnd_customer_i_dst,
-            rnd_ride_i_src, rnd_ride_i_dst
-        );
-        cerr << create_entity_string(entity) << endl;
         exit(0);
     }
 }
 
 void create_ride_with_random_customer(Entity *entity)
 {
-    int initial_ride_count = get_entity_ride_count(entity);
-    if (initial_ride_count == 0)
-    {
-        fprintf(stderr, "create_ride_with_random_customer(): No rides in entity !!!!!!!!!\n");
-    }
-
     // Choose a random ride to remove a customer from
     int   rnd_ride_i_src = rand() % get_entity_ride_count(entity);
     Ride *ride_src = get_entity_ride(entity, rnd_ride_i_src);
 
-    int initial_customer_count = get_ride_customer_served(ride_src);
-    if (initial_customer_count == 0)
+    // Don't move the customer if it's the only one in its ride (Prevent useless actions)
+    if (get_ride_customer_served(ride_src) == 1)
     {
-        fprintf(stderr, "create_ride_with_random_customer(): No customers in ride_src !!!!!!!!!\n");
+        return;
     }
 
     // Choose a random customer to move
     int       rnd_customer_i_src = rand() % get_ride_customer_served(ride_src);
     Location *customer_to_move = get_ride_customer_location(ride_src, rnd_customer_i_src);
 
-    // Don't move the customer if it's the only one in its ride (Prevent useless actions)
-    if (initial_customer_count == 1)
-    {
-        return;
-    }
-
     remove_customer_from_ride(entity, rnd_ride_i_src, ride_src, rnd_customer_i_src);
     create_ride_to_entity(entity, customer_to_move);
-
-    if (initial_ride_count + 1 != get_entity_ride_count(entity))
-    {
-        fprintf(
-            stderr, "create_ride_with_random_customer(): No ride added : %d + 1 != %d\n",
-            initial_ride_count, get_entity_ride_count(entity)
-        );
-    }
-    if (initial_customer_count - 1 != get_ride_customer_served(ride_src))
-    {
-        fprintf(
-            stderr, "create_ride_with_random_customer(): No customer removed : %d - 1 != %d\n",
-            initial_customer_count, get_ride_customer_served(ride_src)
-        );
-    }
-    Ride *ride_dst = get_entity_ride(entity, get_entity_ride_count(entity) - 1);
-    if (1 != get_ride_customer_served(ride_dst))
-    {
-        fprintf(
-            stderr, "create_ride_with_random_customer(): No customer added : 1 != %d\n",
-            get_ride_customer_served(ride_dst)
-        );
-    }
 
     if (count_customer_locations(entity) != global_customer_count)
     {
