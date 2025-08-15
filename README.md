@@ -2,6 +2,11 @@
 
 # Versions
 
+## 1.4
+
+- New mutation : Create a ride with a random customer from another ride
+- Fix mutation bug in move_customer() where a customer deappeared
+
 ## 1.3 - 135 981
 
 - Fix random number generation for mutations
@@ -38,6 +43,8 @@ Customers go in rides in order, or start a new ride.
 One ride per customer
 
 # Next steps
+
+- Add DEBUG mode
 
 - Fix errors about :
     - Some customers have not been served !
