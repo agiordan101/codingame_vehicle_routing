@@ -1,5 +1,5 @@
 /*
-    V1.1
+    V1.2
 
     Genetic algorithm.
     - Generate a random population
@@ -8,15 +8,18 @@
     - Mutate : Move a customer from a ride to insert it in another ride (Can remove a ride)
 */
 
+#include <cstdint>
+
 /* --- GENETIC ALGORITHM CONSTANTS --- */
 
-constexpr int N_ENTITIES = 10;
+constexpr int N_ENTITIES = 550;
+constexpr int N_GENERATION = INT32_MAX;
 
 constexpr int ASSUMING_N_CUSTOMER_PER_RIDE = 40;
 constexpr int ASSUMING_N_RIDE_PER_ENTITY = 40;
 
 constexpr int MR_CUSTOMER_SWITCH = 20;
-constexpr int MR_CUSTOMER_STEAL = 10;
+constexpr int MR_CUSTOMER_STEAL = 20;
 
 #undef _GLIBCXX_DEBUG
 #pragma GCC optimize("Ofast,unroll-loops,omit-frame-pointer,inline")
@@ -588,12 +591,11 @@ int main()
     int     best_first_fitness = compute_fitness(best_entity);
     int     best_fitness = best_first_fitness;
 
-    // fprintf(stderr, "Mem size global_locations: %ld\n", sizeof(global_locations));
-    // fprintf(stderr, "Mem size population: %ld\n", sizeof(population));
+    // fprintf(stderr, "Starting GA with %d entities | Mutation rates: Switch=%d%%, Move=%d%%\n", N_ENTITIES, MR_CUSTOMER_SWITCH, MR_CUSTOMER_STEAL);
 
     int  generation_count = 1;
     auto end = chrono::high_resolution_clock::now();
-    while (chrono::duration_cast<chrono::milliseconds>(end - start).count() < 9000)
+    while (chrono::duration_cast<chrono::milliseconds>(end - start).count() < 9000 && generation_count < N_GENERATION)
     {
         select_next_generation_entities(population);
         mutate_population(population);
@@ -619,6 +621,6 @@ int main()
     //     generation_count, N_ENTITIES, best_first_fitness, best_fitness
     // );
 
-    cout << "ent=" << N_ENTITIES << " | gen=" << generation_count << " | fitness=" << best_fitness;
-    // cout << create_entity_string(best_entity) << endl;
+    // cout << "ent=" << N_ENTITIES << " | gen=" << generation_count << " | fitness=" << best_fitness;
+    cout << create_entity_string(best_entity) << endl;
 }
