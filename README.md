@@ -2,6 +2,10 @@
 
 # Versions
 
+## 1.3 - 135 981
+
+- Fix random number generation for mutations
+
 ## 1.2 - 134 495
 
 - Increase population size from 10 to 550

@@ -1,5 +1,5 @@
 /*
-    V1.2
+    V1.3
 
     Genetic algorithm.
     - Generate a random population
@@ -12,14 +12,14 @@
 
 /* --- GENETIC ALGORITHM CONSTANTS --- */
 
-constexpr int N_ENTITIES = 200;
+constexpr int N_ENTITIES = 300;
 constexpr int N_GENERATION = INT32_MAX;
 
 constexpr int ASSUMING_N_CUSTOMER_PER_RIDE = 40;
 constexpr int ASSUMING_N_RIDE_PER_ENTITY = 40;
 
-constexpr int MR_CUSTOMER_SWITCH = 30;
-constexpr int MR_CUSTOMER_STEAL = 30;
+constexpr int MR_SWITCH_CUSTOMERS = 20;
+constexpr int MR_MOVE_CUSTOMER = 10;
 
 #undef _GLIBCXX_DEBUG
 #pragma GCC optimize("Ofast,unroll-loops,omit-frame-pointer,inline")
@@ -452,7 +452,7 @@ void switch_customers(Entity *entity)
     set_ride_customer_location(ride2, rnd_customer_i2, customer1);
 }
 
-void steal_customer(Entity *entity)
+void move_customer(Entity *entity)
 {
     // Choose 2 random rides
     int   rnd_ride_i_dst = rand() % get_entity_ride_count(entity);
@@ -467,11 +467,11 @@ void steal_customer(Entity *entity)
 
     // Choose a random customer in the source ride
     int       rnd_customer_i_src = rand() % get_ride_customer_served(ride_src);
-    Location *stolen_customer = get_ride_customer_location(ride_src, rnd_customer_i_src);
+    Location *customer_to_move = get_ride_customer_location(ride_src, rnd_customer_i_src);
 
     // Verify it can be added to the destination ride
     if (rnd_ride_i_dst == rnd_ride_i_src ||
-        can_customer_be_added_to_ride(ride_dst, stolen_customer))
+        can_customer_be_added_to_ride(ride_dst, customer_to_move))
     {
         // Remove it from the ride first (The order is important in case src and dst rides are the
         // same)
@@ -492,7 +492,7 @@ void steal_customer(Entity *entity)
 
         // Then choose a random position to insert it in the destination ride
         int rnd_customer_i_dst = rand() % get_ride_customer_served(ride_dst);
-        add_customer_to_ride(ride_dst, rnd_customer_i_dst, stolen_customer);
+        add_customer_to_ride(ride_dst, rnd_customer_i_dst, customer_to_move);
     }
 
     // int customer_sum_after = get_ride_customer_served(ride_src) +
@@ -508,12 +508,12 @@ void steal_customer(Entity *entity)
 void mutate_entity(Entity *entity)
 {
     int rnd_number = rand() % 100;
-
-    if (rnd_number < MR_CUSTOMER_SWITCH)
-        switch_customers(entity);
-
-    if (rnd_number < MR_CUSTOMER_STEAL)
-        steal_customer(entity);
+    if (rnd_number < MR_SWITCH_CUSTOMERS)
+    switch_customers(entity);
+    
+    rnd_number = rand() % 100;
+    if (rnd_number < MR_MOVE_CUSTOMER)
+        move_customer(entity);
 }
 
 void mutate_population(Entity *population)
@@ -596,7 +596,7 @@ int main()
     int     best_first_fitness = compute_fitness(best_entity);
     int     best_fitness = best_first_fitness;
 
-    fprintf(stderr, "Starting GA with %d entities | Mutation rates: Switch=%d%%, Move=%d%%\n", N_ENTITIES, MR_CUSTOMER_SWITCH, MR_CUSTOMER_STEAL);
+    fprintf(stderr, "Starting GA with %d entities | Mutation rates: Switch=%d%%, Move=%d%%\n", N_ENTITIES, MR_SWITCH_CUSTOMERS, MR_MOVE_CUSTOMER);
 
     int  generation_count = 1;
     auto end = chrono::high_resolution_clock::now();
