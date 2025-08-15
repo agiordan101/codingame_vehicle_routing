@@ -13,6 +13,7 @@
         "cstring": "cpp",
         "random": "cpp",
         "iostream": "cpp",
-        "climits": "cpp"
+        "climits": "cpp",
+        "cstdint": "cpp"
     }
 }

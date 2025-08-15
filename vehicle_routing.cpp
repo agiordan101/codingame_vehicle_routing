@@ -12,14 +12,14 @@
 
 /* --- GENETIC ALGORITHM CONSTANTS --- */
 
-constexpr int N_ENTITIES = 550;
+constexpr int N_ENTITIES = 200;
 constexpr int N_GENERATION = INT32_MAX;
 
 constexpr int ASSUMING_N_CUSTOMER_PER_RIDE = 40;
 constexpr int ASSUMING_N_RIDE_PER_ENTITY = 40;
 
-constexpr int MR_CUSTOMER_SWITCH = 20;
-constexpr int MR_CUSTOMER_STEAL = 20;
+constexpr int MR_CUSTOMER_SWITCH = 30;
+constexpr int MR_CUSTOMER_STEAL = 30;
 
 #undef _GLIBCXX_DEBUG
 #pragma GCC optimize("Ofast,unroll-loops,omit-frame-pointer,inline")
@@ -36,7 +36,7 @@ constexpr int MR_CUSTOMER_STEAL = 20;
 #include <random> // for std::mt19937 and std::random_device
 #include <string>
 #include <vector>
-
+#include <sys/resource.h>
 using namespace std;
 
 // Setup random engine
@@ -582,6 +582,11 @@ int main()
 {
     parse_stdin();
 
+    struct rlimit rl;
+    getrlimit(RLIMIT_STACK, &rl);
+    rl.rlim_cur = rl.rlim_max;
+    setrlimit(RLIMIT_STACK, &rl);
+
     auto start = chrono::high_resolution_clock::now();
 
     Entity population[N_ENTITIES];
@@ -591,7 +596,7 @@ int main()
     int     best_first_fitness = compute_fitness(best_entity);
     int     best_fitness = best_first_fitness;
 
-    // fprintf(stderr, "Starting GA with %d entities | Mutation rates: Switch=%d%%, Move=%d%%\n", N_ENTITIES, MR_CUSTOMER_SWITCH, MR_CUSTOMER_STEAL);
+    fprintf(stderr, "Starting GA with %d entities | Mutation rates: Switch=%d%%, Move=%d%%\n", N_ENTITIES, MR_CUSTOMER_SWITCH, MR_CUSTOMER_STEAL);
 
     int  generation_count = 1;
     auto end = chrono::high_resolution_clock::now();
@@ -616,11 +621,11 @@ int main()
         // );
     }
 
-    // fprintf(
-    //     stderr, "\nBest fitnesses after %d generations (of %d entities): %d -> %d\n",
-    //     generation_count, N_ENTITIES, best_first_fitness, best_fitness
-    // );
+    fprintf(
+        stderr, "Best fitnesses after %d generations (of %d entities): %d -> %d\n",
+        generation_count, N_ENTITIES, best_first_fitness, best_fitness
+    );
 
-    // cout << "ent=" << N_ENTITIES << " | gen=" << generation_count << " | fitness=" << best_fitness;
-    cout << create_entity_string(best_entity) << endl;
+    cout << "ent=" << N_ENTITIES << " | gen=" << generation_count << " | fitness=" << best_fitness;
+    // cout << create_entity_string(best_entity) << endl;
 }

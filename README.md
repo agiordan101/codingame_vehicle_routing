@@ -2,7 +2,12 @@
 
 # Versions
 
-## 1.1 - 126 110
+## 1.2 - 134 495
+
+- Increase population size from 10 to 550
+- Increase mutation rates
+
+## 1.1 - 126 110 (Best version)
 
 - New mutation : Move a customer from a ride to insert it in another ride (Can remove a ride)
 
@@ -30,4 +35,8 @@ One ride per customer
 
 # Next steps
 
+- Fix errors about :
+    - Some customers have not been served !
 
+- Add mumation :
+    - Create a ride from a random customer
