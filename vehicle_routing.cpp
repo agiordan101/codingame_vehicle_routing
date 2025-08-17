@@ -11,17 +11,25 @@
 
 #include <cstdint>
 
+#define CG_MODE       1
+#define DEBUG_MODE    2
+#define FINETUNE_MODE 3
+// #define CURRENT_MODE  CG_MODE
+// #define CURRENT_MODE  DEBUG_MODE
+#define CURRENT_MODE  FINETUNE_MODE
+
 /* --- GENETIC ALGORITHM CONSTANTS --- */
 
-constexpr int N_ENTITIES = 300;
+int           N_ENTITIES = 100;
 constexpr int N_GENERATION = INT32_MAX;
+constexpr int N_ALLOWED_MILLISECONDS = 9000;
 
 constexpr int ASSUMING_N_CUSTOMER_PER_RIDE = 40;
 constexpr int ASSUMING_N_RIDE_PER_ENTITY = 40;
 
-constexpr int MR_SWITCH_CUSTOMERS = 20;
-constexpr int MR_MOVE_CUSTOMER = 10;
-constexpr int MR_CREATE_RIDE = 5;
+int MR_SWITCH_CUSTOMERS = 20;
+int MR_MOVE_CUSTOMER = 10;
+int MR_CREATE_RIDE = 5;
 
 #undef _GLIBCXX_DEBUG
 #pragma GCC optimize("Ofast,unroll-loops,omit-frame-pointer,inline")
@@ -624,6 +632,15 @@ void mutate_population(Entity *population)
 
 void parse_stdin()
 {
+    if (CURRENT_MODE == FINETUNE_MODE)
+    {
+        int seed;
+        cin >> N_ENTITIES >> MR_SWITCH_CUSTOMERS >> MR_MOVE_CUSTOMER >> MR_CREATE_RIDE >> seed;
+        cin.ignore();
+
+        std::srand(seed);
+    }
+
     cin >> global_location_count;
     cin.ignore();
 
@@ -703,7 +720,8 @@ int main()
 
     int  generation_count = 0;
     auto end = chrono::high_resolution_clock::now();
-    while (chrono::duration_cast<chrono::milliseconds>(end - start).count() < 9000 &&
+    while (chrono::duration_cast<chrono::milliseconds>(end - start).count() <
+               N_ALLOWED_MILLISECONDS &&
            generation_count < N_GENERATION)
     {
         select_next_generation_entities(population);
@@ -731,6 +749,11 @@ int main()
         generation_count, N_ENTITIES, best_first_fitness, best_fitness
     );
 
-    cout << "ent=" << N_ENTITIES << " | gen=" << generation_count << " | fitness=" << best_fitness;
-    // cout << create_entity_string(best_entity) << endl;
+    if (CURRENT_MODE == CG_MODE)
+        cout << create_entity_string(best_entity) << endl;
+    else if (CURRENT_MODE == DEBUG_MODE)
+        cout << "ent=" << N_ENTITIES << " | gen=" << generation_count
+             << " | fitness=" << best_fitness << endl;
+    else if (CURRENT_MODE == FINETUNE_MODE)
+        cout << best_fitness << endl;
 }

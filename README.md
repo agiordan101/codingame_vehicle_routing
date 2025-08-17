@@ -2,7 +2,7 @@
 
 # Versions
 
-## 1.4 - 141 484
+## 1.4 - 127 860
 
 - New mutation : Create a ride with a random customer from another ride
 - Fix mutation bug in move_customer() where a customer deappeared
@@ -16,7 +16,7 @@
 - Increase population size from 10 to 550
 - Increase mutation rates
 
-## 1.1 - 126 110 (Best version)
+## 1.1 - 122 313 (Best version)
 
 - New mutation : Move a customer from a ride to insert it in another ride (Can remove a ride)
 
@@ -45,9 +45,6 @@ One ride per customer
 # Next steps
 
 - Add DEBUG mode
+- Square the fitness while selecting parents
 
-- Fix errors about :
-    - Some customers have not been served !
 
-- Add mumation :
-    - Create a ride from a random customer
