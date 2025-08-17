@@ -57,16 +57,16 @@ def process_test_files(cpp_executable: str, ga_constants: tuple, seed: int, test
 def generate_mutation_rates() -> Generator:
     """Génère une liste de n entiers aléatoires entre min_val et max_val."""
 
-    yield (50, 10, 10, 1)
-    yield (400, 20, 20, 1)
+    # yield (50, 10, 10, 1)
+    # yield (400, 20, 20, 1)
 
-    # for n_entities in range(50, 500, 100):
-    #     for mr_switch in range(5, 40, 10):
-    #         for mr_move in range(5, 40, 10):
-    #             for mr_create in range(1, 2):
-    #                 yield (
-    #                     n_entities, mr_switch, mr_move, mr_create
-    #                 )
+    for n_entities in range(50, 500, 100):
+        for mr_switch in range(5, 40, 10):
+            for mr_move in range(5, 40, 10):
+                for mr_create in range(1, 2):
+                    yield (
+                        n_entities, mr_switch, mr_move, mr_create
+                    )
 
 
 def main(cpp_executable: str, test_files: list[str]):
