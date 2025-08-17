@@ -2,6 +2,14 @@
 
 # Versions
 
+## 1.5 - 120 573 (Best version)
+
+- After finetuning :
+    * N_ENTITIES = 50;
+    * MR_SWITCH_CUSTOMERS = 5;
+    * MR_MOVE_CUSTOMER = 35;
+    * MR_CREATE_RIDE = 1;
+
 ## 1.4 - 127 860
 
 - New mutation : Create a ride with a random customer from another ride
@@ -16,7 +24,7 @@
 - Increase population size from 10 to 550
 - Increase mutation rates
 
-## 1.1 - 122 313 (Best version)
+## 1.1 - 122 313
 
 - New mutation : Move a customer from a ride to insert it in another ride (Can remove a ride)
 

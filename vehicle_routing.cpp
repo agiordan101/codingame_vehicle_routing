@@ -1,5 +1,5 @@
 /*
-    V1.4
+    V1.5 (After finetuning)
 
     Genetic algorithm.
     - Generate a random population
@@ -15,21 +15,21 @@
 #define DEBUG_MODE    2
 #define FINETUNE_MODE 3
 // #define CURRENT_MODE  CG_MODE
-// #define CURRENT_MODE  DEBUG_MODE
-#define CURRENT_MODE FINETUNE_MODE
+#define CURRENT_MODE  DEBUG_MODE
+// #define CURRENT_MODE FINETUNE_MODE
 
 /* --- GENETIC ALGORITHM CONSTANTS --- */
 
-int           N_ENTITIES = 100;
+int           N_ENTITIES = 50;
 constexpr int N_GENERATION = INT32_MAX;
-constexpr int N_ALLOWED_MILLISECONDS = 1000;
+constexpr int N_ALLOWED_MILLISECONDS = 9000;
 
 constexpr int ASSUMING_N_CUSTOMER_PER_RIDE = 40;
 constexpr int ASSUMING_N_RIDE_PER_ENTITY = 40;
 
-int MR_SWITCH_CUSTOMERS = 20;
-int MR_MOVE_CUSTOMER = 10;
-int MR_CREATE_RIDE = 5;
+int MR_SWITCH_CUSTOMERS = 5;
+int MR_MOVE_CUSTOMER = 35;
+int MR_CREATE_RIDE = 1;
 
 #undef _GLIBCXX_DEBUG
 #pragma GCC optimize("Ofast,unroll-loops,omit-frame-pointer,inline")
