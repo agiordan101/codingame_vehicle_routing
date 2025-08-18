@@ -1,5 +1,5 @@
 /*
-    V1.5 (After finetuning)
+    V1.6
 
     Genetic algorithm.
     - Generate a random population
@@ -14,8 +14,8 @@
 #define CG_MODE       1
 #define DEBUG_MODE    2
 #define FINETUNE_MODE 3
-// #define CURRENT_MODE  CG_MODE
-#define CURRENT_MODE  DEBUG_MODE
+#define CURRENT_MODE  CG_MODE
+// #define CURRENT_MODE  DEBUG_MODE
 // #define CURRENT_MODE FINETUNE_MODE
 
 /* --- GENETIC ALGORITHM CONSTANTS --- */
@@ -28,7 +28,7 @@ constexpr int ASSUMING_N_CUSTOMER_PER_RIDE = 40;
 constexpr int ASSUMING_N_RIDE_PER_ENTITY = 40;
 
 int MR_SWITCH_CUSTOMERS = 5;
-int MR_MOVE_CUSTOMER = 35;
+int MR_MOVE_CUSTOMER = 15;
 int MR_CREATE_RIDE = 1;
 
 #undef _GLIBCXX_DEBUG

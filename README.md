@@ -2,9 +2,14 @@
 
 # Versions
 
-## 1.5 - 120 573 (Best version)
+## 1.6 - 111 992 (Best version)
 
-- After finetuning :
+- After finetuning plot :
+    * MR_MOVE_CUSTOMER = 15;
+
+## 1.5 - 120 573
+
+- After finetuning with bubble plot :
     * N_ENTITIES = 50;
     * MR_SWITCH_CUSTOMERS = 5;
     * MR_MOVE_CUSTOMER = 35;
