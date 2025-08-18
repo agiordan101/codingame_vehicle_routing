@@ -21,11 +21,11 @@ all: $(CPP_FILE)
 
 # Build the target
 $(CPP_FILE): $(CPP_FILE).cpp
-	$(CC) $(CXXFLAGS) $(CXXOPTIMIZE) $(CXXOPTION) $(CXXTARGET) $< -o $@
+	$(CC) $(CXXFLAGS) $(CXXOPTIMIZE) $(CXXOPTION) $(CXXTARGET) $< -o ./bins/$@
 
 # Build and run the target
 run: $(CPP_FILE)
-	./$(CPP_FILE) < $(TEST_FILE)
+	./bins/$(CPP_FILE) < $(TEST_FILE)
 # 	@find $(TEST_DIR) -type f | while IFS= read -r test_file; do \
 # 		./$(CPP_FILE) < "$$test_file" \
 # 	done
@@ -35,7 +35,7 @@ evaluate: $(CPP_FILE)
 	@rm -f $(OUTPUT_FILE)
 	@find $(TEST_DIR) -type f | while IFS= read -r test_file; do \
 		echo "Processing "$$test_file""; \
-		result=$$(./$(CPP_FILE) < "$$test_file"); \
+		result=$$(./bins/$(CPP_FILE) < "$$test_file"); \
 		echo "$$result" >> $(OUTPUT_FILE); \
 	done
 	@echo "All results have been written to $(OUTPUT_FILE)."

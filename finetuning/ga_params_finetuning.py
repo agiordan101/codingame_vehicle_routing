@@ -73,7 +73,7 @@ def main(cpp_executable: str, test_files: list[str]):
     """Exécute le processus pour plusieurs combinaisons de GA constants."""
 
     # Write all the constants and their result in a file
-    with open("ga_params_finetuning_results.csv", "w") as f:
+    with open("finetuning_results.csv", "w") as f:
         f.write(f"entities, mr_switch, mr_move, mr_create, result\n")
 
     seeds = [42, 101, 314]
@@ -97,7 +97,7 @@ def main(cpp_executable: str, test_files: list[str]):
         else:
             print(f"GA constants: {ga_constants} → {dist_sum} (Best are: {best_ga_constants} → {best_sum})")
 
-        with open("ga_params_finetuning_results.csv", "a") as f:
+        with open("finetuning_results.csv", "a") as f:
             f.write(f"{ga_constants[0]}, {ga_constants[1]}, {ga_constants[2]}, {ga_constants[3]}, {dist_sum}\n")
 
     print(f"The overall best GA constants were {best_ga_constants} with a total sum of {best_sum}")
@@ -116,6 +116,6 @@ if __name__ == "__main__":
     test_files = get_test_files_from_folder("testset")
 
     # Chemin vers l'exécutable C++ (à adapter)
-    cpp_executable = "./vehicle_routing"
+    cpp_executable = "../bins/vehicle_routing"
 
     main(cpp_executable, test_files)
