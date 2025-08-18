@@ -60,10 +60,10 @@ def generate_mutation_rates() -> Generator:
     # yield (50, 10, 10, 1)
     # yield (400, 20, 20, 1)
 
-    for n_entities in range(50, 500, 100):
-        for mr_switch in range(5, 40, 10):
-            for mr_move in range(5, 40, 10):
-                for mr_create in range(1, 2):
+    for n_entities in range(10, 60, 20):
+        for mr_switch in range(1, 10, 3):
+            for mr_move in range(10, 20, 3):
+                for mr_create in range(1, 3):
                     yield (
                         n_entities, mr_switch, mr_move, mr_create
                     )
@@ -71,13 +71,15 @@ def generate_mutation_rates() -> Generator:
 
 def main(cpp_executable: str, test_files: list[str]):
     """Exécute le processus pour plusieurs combinaisons de GA constants."""
-    seeds = [42, 101, 314]
 
+    # Write all the constants and their result in a file
+    with open("ga_params_finetuning_results.csv", "w") as f:
+        f.write(f"entities, mr_switch, mr_move, mr_create, result\n")
+
+    seeds = [42, 101, 314]
     best_ga_constants = None
     best_sum = float('inf')
-    results = []
     for ga_constants in generate_mutation_rates():
-
         # print(f"Run '{cpp_executable}' with MR '{ga_constants}' and {len(seeds)} seeds ...")
 
         # Run the test files with this ga_constants 3 times with different seeds
@@ -88,8 +90,6 @@ def main(cpp_executable: str, test_files: list[str]):
             ]
         ))
 
-        results.append((ga_constants, dist_sum))
-
         if dist_sum < best_sum:
             best_sum = dist_sum
             best_ga_constants = ga_constants
@@ -97,16 +97,10 @@ def main(cpp_executable: str, test_files: list[str]):
         else:
             print(f"GA constants: {ga_constants} → {dist_sum} (Best are: {best_ga_constants} → {best_sum})")
 
-    print(f"The overall best GA constants were {best_ga_constants} with a total sum of {best_sum}")
-
-    # Trier les résultats par ordre croissant de dist_sum
-    results.sort(key=lambda x: x[1])
-
-    # Write all the constants and their result in a file
-    with open("ga_params_finetuning_results.csv", "w") as f:
-        f.write(f"entities, mr_switch, mr_move, mr_create, result\n")
-        for ga_constants, dist_sum in results:
+        with open("ga_params_finetuning_results.csv", "a") as f:
             f.write(f"{ga_constants[0]}, {ga_constants[1]}, {ga_constants[2]}, {ga_constants[3]}, {dist_sum}\n")
+
+    print(f"The overall best GA constants were {best_ga_constants} with a total sum of {best_sum}")
 
 
 def get_test_files_from_folder(folder_path: str) -> list[str]:

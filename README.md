@@ -2,9 +2,17 @@
 
 # Versions
 
-## 1.6 - 111 992 (Best version)
+## 1.7 - 101 260 (Best version)
 
-- After finetuning plot :
+- After finetuning around small range given by the previous finetuning session:
+    * N_ENTITIES = 10;
+    * MR_SWITCH_CUSTOMERS = 7;
+    * MR_MOVE_CUSTOMER = 16;
+    * MR_CREATE_RIDE = 2;
+
+## 1.6 - 111 992
+
+- After finetuning with one MR per plot :
     * MR_MOVE_CUSTOMER = 15;
 
 ## 1.5 - 120 573
@@ -56,6 +64,9 @@ Customers go in rides in order, or start a new ride.
 One ride per customer
 
 # Next steps
+
+- CREATE A FUCKING GENETIC ALGORITHM TO FINETUNE MY GENETIC ALGORITHM HYPERPARAMETERS
+    * 
 
 - Add DEBUG mode
 - Square the fitness while selecting parents
