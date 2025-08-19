@@ -2,6 +2,14 @@
 
 # Versions
 
+## 1.8 - 101 059 (Best version)
+
+- After finetuning with another genetic algorithm
+    * N_ENTITIES = 10;
+    * MR_SWITCH_CUSTOMERS = 6;
+    * MR_MOVE_CUSTOMER = 13;
+    * MR_CREATE_RIDE = 3;
+
 ## 1.7 - 101 260 (Best version)
 
 - After finetuning around small range given by the previous finetuning session:

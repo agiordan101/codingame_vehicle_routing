@@ -27,9 +27,9 @@ constexpr int N_ALLOWED_MILLISECONDS = 9000;
 constexpr int ASSUMING_N_CUSTOMER_PER_RIDE = 40;
 constexpr int ASSUMING_N_RIDE_PER_ENTITY = 40;
 
-int MR_SWITCH_CUSTOMERS = 7;
-int MR_MOVE_CUSTOMER = 16;
-int MR_CREATE_RIDE = 2;
+int MR_SWITCH_CUSTOMERS = 6;
+int MR_MOVE_CUSTOMER = 13;
+int MR_CREATE_RIDE = 3;
 
 #undef _GLIBCXX_DEBUG
 #pragma GCC optimize("Ofast,unroll-loops,omit-frame-pointer,inline")

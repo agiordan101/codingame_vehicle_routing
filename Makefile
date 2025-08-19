@@ -5,7 +5,7 @@ CXXOPTION = -O3 -march=native -mtune=native -mno-vzeroupper
 CXXTARGET = -mmovbe -maes -mpclmul -mavx -mavx2 -mf16c -mfma -msse3 -mssse3 -msse4.1 -msse4.2 -mrdrnd -mpopcnt -mbmi -mbmi2 -mlzcnt
 
 CPP_FILE = vehicle_routing
-TEST_FILE = "testset/3 Cocorico"
+TEST_FILE = "testset/13 Benchmark Instance M-n200-k17"
 OUTPUT_FILE = "testoutput.txt"
 
 SHELL := /bin/bash
@@ -39,6 +39,12 @@ evaluate: $(CPP_FILE)
 		echo "$$result" >> $(OUTPUT_FILE); \
 	done
 	@echo "All results have been written to $(OUTPUT_FILE)."
+
+bf_finetune: $(CPP_FILE)
+	python3 finetuning_bruteforce/ga_params_finetuning.py
+
+ga_finetune: $(CPP_FILE)
+	python3 finetuning_with_ga/ga_finetuning.py
 
 clean:
 	rm -f $(CPP_FILE)
