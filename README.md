@@ -73,12 +73,6 @@ One ride per customer
 
 # Next steps
 
-- CREATE A FUCKING GENETIC ALGORITHM TO FINETUNE MY GENETIC ALGORITHM HYPERPARAMETERS
-    * 
-
-- Add DEBUG mode
 - Square the fitness while selecting parents
 
-- Use machine learning algorithm to explore parameters space (ga constant combinaisons). With trainset and testset.
-- Could generate more file examples randomly ! like the benchmark instances
 - Use matplotlib and pandas to visualize the result in 3D/4D graphs
